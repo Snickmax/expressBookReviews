@@ -1,6 +1,7 @@
 const express = require('express');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
+const axios = require('axios');
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
@@ -31,6 +32,15 @@ public_users.get('/', function (req, res) {
     res.send(JSON.stringify(books, null, 4)); // Salida ordenada
 });
 
+public_users.get('/async/books', async (req, res) => {
+    try {
+        const response = await axios.get('http://localhost:5001/books');
+        res.send(response.data);
+    } catch (error) {
+        res.status(500).json({ message: "Error al obtener los libros." });
+    }
+});
+
 // Obtener los detalles del libro según el ISBN
 public_users.get('/isbn/:isbn', function (req, res) {
     const isbn = req.params.isbn; // Extraer el ISBN de los parámetros de la URL
@@ -41,6 +51,16 @@ public_users.get('/isbn/:isbn', function (req, res) {
         res.send(JSON.stringify(book, null, 4)); // Mostrar detalles del libro con formato
     } else {
         res.status(404).json({ message: "Libro no encontrado para el ISBN proporcionado." });
+    }
+});
+
+public_users.get('/async/isbn/:isbn', async (req, res) => {
+    const isbn = req.params.isbn;
+    try {
+        const response = await axios.get(`http://localhost:5001/books/isbn/${isbn}`);
+        res.send(response.data);
+    } catch (error) {
+        res.status(404).json({ message: "Libro no encontrado." });
     }
 });
 
@@ -64,6 +84,16 @@ public_users.get('/author/:author', function (req, res) {
     }
 });
 
+public_users.get('/async/author/:author', async (req, res) => {
+    const author = req.params.author;
+    try {
+        const response = await axios.get(`http://localhost:5001/books/author/${author}`);
+        res.send(response.data);
+    } catch (error) {
+        res.status(404).json({ message: "Autor no encontrado." });
+    }
+});
+
 // Obtener todos los libros según el título
 public_users.get('/title/:title', function (req, res) {
     const titleParam = req.params.title.toLowerCase();
@@ -79,6 +109,16 @@ public_users.get('/title/:title', function (req, res) {
         res.send(JSON.stringify(matchingBooks, null, 4));
     } else {
         res.status(404).json({ message: "No se encontraron libros con ese título." });
+    }
+});
+
+public_users.get('/async/title/:title', async (req, res) => {
+    const title = req.params.title;
+    try {
+        const response = await axios.get(`http://localhost:5001/books/title/${title}`);
+        res.send(response.data);
+    } catch (error) {
+        res.status(404).json({ message: "Título no encontrado." });
     }
 });
 
